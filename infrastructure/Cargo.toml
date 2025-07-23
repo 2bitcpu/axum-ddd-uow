@@ -1,0 +1,12 @@
+[package]
+name = "infrastructure"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+common.workspace = true
+domain.workspace = true
+async-trait.workspace = true
+tokio.workspace = true
+
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "chrono", "derive", "sqlite"] }

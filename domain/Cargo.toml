@@ -1,0 +1,11 @@
+[package]
+name = "domain"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+async-trait.workspace = true
+common.workspace = true
+
+sqlx = { version = "0.8.6", default-features = false, features = ["chrono", "derive"] }

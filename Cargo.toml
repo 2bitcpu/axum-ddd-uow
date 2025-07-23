@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = ["common", "domain", "infrastructure"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+async-trait = { version = "0.1.88", default-features = false }
+chrono = { version = "0.4.41", default-features = false, features = ["serde", "now"] }
+derive-new = "0.7.0"
+serde = { version = "1.0.219", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.141", default-features = false, features = ["std"] }
+tokio = { version = "1.46.1", default-features = false, features = ["macros", "rt-multi-thread", "signal"] }
+
+common = { path = "common" }
+domain = { path = "domain" }

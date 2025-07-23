@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS content (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS tag (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    label TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS content_tag (
+    content_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    PRIMARY KEY (content_id, tag_id)
+);
