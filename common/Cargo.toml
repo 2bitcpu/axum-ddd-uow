@@ -1,0 +1,12 @@
+[package]
+name = "common"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+libsqlite3-sys = { version = "^0.30.1", default-features = false, optional = true }
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio-rustls", "chrono", "derive", "sqlite"] }
+
+[features]
+libsqlite3-sys = ["dep:libsqlite3-sys"]
