@@ -5,6 +5,7 @@ use async_trait::async_trait;
 use common::types::{BoxError, DbPool};
 use domain::{
     interface::{content::ContentInterface, content_tag::ContentTagInterface, tag::TagInterface},
+    repository_provider::RepositoryProviderInterface,
     unit_of_work::UnitOfWorkInterface,
 };
 use sqlx::{Transaction, sqlite::Sqlite};
@@ -21,11 +22,14 @@ impl RepositoryProvider {
     pub fn new(pool: DbPool) -> Self {
         Self { pool }
     }
+}
 
+#[async_trait]
+impl RepositoryProviderInterface for RepositoryProvider {
     // 新しいUnit of Work（トランザクション）を開始します。
     // これがユースケースの起点となります。
     // 戻り値をトレイトオブジェクトにすることで、インフラ層の実装を隠蔽します。
-    pub async fn begin(&self) -> Result<Box<dyn UnitOfWorkInterface + '_>, BoxError> {
+    async fn begin(&self) -> Result<Box<dyn UnitOfWorkInterface + '_>, BoxError> {
         let tx = self.pool.begin().await?;
         Ok(Box::new(UnitOfWork { tx }))
     }

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["common", "domain", "infrastructure"]
+members = ["common", "domain", "infrastructure", "usecase"]
 
 [workspace.package]
 version = "0.1.0"
@@ -16,3 +16,5 @@ tokio = { version = "1.46.1", default-features = false, features = ["macros", "r
 
 common = { path = "common" }
 domain = { path = "domain" }
+infrastructure = { path = "infrastructure" }
+usecase = { path = "usecase" }

@@ -1,0 +1,14 @@
+[package]
+name = "usecase"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde.workspace = true
+domain.workspace = true
+derive-new.workspace = true
+common.workspace = true
+
+[dev-dependencies]
+infrastructure.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

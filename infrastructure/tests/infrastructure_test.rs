@@ -1,14 +1,17 @@
 use {
     common::{setup::init_db, types::BoxError},
-    domain::model::{content::ContentEntity, content_tag::ContentTagEntity, tag::TagEntity},
+    domain::{
+        model::{content::ContentEntity, content_tag::ContentTagEntity, tag::TagEntity},
+        repository_provider::RepositoryProviderInterface,
+    },
     infrastructure::repositories::RepositoryProvider,
 };
 
 /// 各テストのために、新しいインメモリDBと`RepositoryProvider`をセットアップするヘルパー関数
-async fn setup() -> RepositoryProvider {
+async fn setup() -> Box<dyn RepositoryProviderInterface> {
     // "sqlite::memory:" を使うことで、テストごとに完全に独立したDBが作成される
     let pool = init_db("sqlite::memory:").await.unwrap();
-    RepositoryProvider::new(pool)
+    Box::new(RepositoryProvider::new(pool))
 }
 
 #[tokio::test]
