@@ -8,6 +8,7 @@ serde.workspace = true
 domain.workspace = true
 derive-new.workspace = true
 common.workspace = true
+sqlx.workspace = true
 
 [dev-dependencies]
 infrastructure.workspace = true

@@ -28,11 +28,42 @@ impl<'a> ContentTagInterface for ContentTagRepository<'a> {
             .await?)
     }
 
+    async fn select(
+        &mut self,
+        content_id: i64,
+        tag_id: i64,
+    ) -> Result<Option<ContentTagEntity>, BoxError> {
+        let sql = "SELECT * FROM content_tag WHERE content_id = ? and tag_id = ?";
+        Ok(sqlx::query_as::<_, ContentTagEntity>(sql)
+            .bind(content_id)
+            .bind(tag_id)
+            .fetch_optional(&mut *self.conn)
+            .await?)
+    }
+
     async fn delete(&mut self, entity: &ContentTagEntity) -> Result<u64, BoxError> {
         let sql = "DELETE FROM content_tag WHERE content_id = ? and tag_id = ?";
         Ok(sqlx::query(sql)
             .bind(&entity.content_id)
             .bind(&entity.tag_id)
+            .execute(&mut *self.conn)
+            .await?
+            .rows_affected())
+    }
+
+    async fn delete_by_content_id(&mut self, content_id: i64) -> Result<u64, BoxError> {
+        let sql = "DELETE FROM content_tag WHERE content_id = ?";
+        Ok(sqlx::query(sql)
+            .bind(content_id)
+            .execute(&mut *self.conn)
+            .await?
+            .rows_affected())
+    }
+
+    async fn delete_by_tag_id(&mut self, tag_id: i64) -> Result<u64, BoxError> {
+        let sql = "DELETE FROM content_tag WHERE tag_id = ?";
+        Ok(sqlx::query(sql)
+            .bind(tag_id)
             .execute(&mut *self.conn)
             .await?
             .rows_affected())

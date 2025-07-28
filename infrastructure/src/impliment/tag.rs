@@ -52,4 +52,12 @@ impl<'a> TagInterface for TagRepository<'a> {
             .await?
             .rows_affected())
     }
+
+    async fn find_by_label(&mut self, label: &str) -> Result<Option<TagEntity>, BoxError> {
+        let sql = "SELECT * FROM tag WHERE label = ?";
+        Ok(sqlx::query_as::<_, TagEntity>(sql)
+            .bind(label)
+            .fetch_optional(&mut *self.conn)
+            .await?)
+    }
 }

@@ -8,4 +8,5 @@ pub trait TagInterface {
     async fn select(&mut self, id: i64) -> Result<Option<TagEntity>, BoxError>;
     async fn update(&mut self, entity: &TagEntity) -> Result<Option<TagEntity>, BoxError>;
     async fn delete(&mut self, id: i64) -> Result<u64, BoxError>;
+    async fn find_by_label(&mut self, label: &str) -> Result<Option<TagEntity>, BoxError>;
 }

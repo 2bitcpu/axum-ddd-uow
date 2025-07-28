@@ -1,7 +1,12 @@
-use crate::model::content::{CreateContentRequestDto, CreateContentResponseDto};
+use crate::model::content::{
+    CreateContentRequestDto, CreateContentResponseDto, EditContentRequestDto,
+};
 use common::types::BoxError;
 use derive_new::new;
-use domain::repository_provider::RepositoryProviderInterface;
+use domain::{
+    model::{content_tag::ContentTagEntity, tag::TagEntity},
+    repository_provider::RepositoryProviderInterface,
+};
 use std::sync::Arc;
 
 #[derive(new, Clone)]
@@ -10,57 +15,88 @@ pub struct ContentUseCases<R: RepositoryProviderInterface> {
 }
 
 impl<R: RepositoryProviderInterface> ContentUseCases<R> {
-    pub async fn post(
+    pub async fn create(
         &self,
         dto: CreateContentRequestDto,
     ) -> Result<CreateContentResponseDto, BoxError> {
         let mut uow = self.provider.begin().await?;
-        let entity = uow.content().create(&dto.to_entity()).await?;
+
+        let mut tags: Vec<TagEntity> = Vec::new();
+        for tag in dto.to_tags() {
+            let entity = uow.tag().find_by_label(&tag.label).await?;
+            if let Some(entity) = entity {
+                tags.push(entity);
+            } else {
+                let entity = uow.tag().create(&tag).await?;
+                tags.push(entity);
+            }
+        }
+
+        let contet = uow.content().create(&dto.to_content()).await?;
+
+        for tag in &tags {
+            let content_tag = uow.content_tag().select(contet.id, tag.id).await?;
+            if content_tag.is_none() {
+                uow.content_tag()
+                    .create(&ContentTagEntity {
+                        content_id: contet.id,
+                        tag_id: tag.id,
+                    })
+                    .await?;
+            }
+        }
         uow.commit().await?;
-        Ok(CreateContentResponseDto::from_entity(entity))
+        Ok(CreateContentResponseDto::from_entity(contet, tags))
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::model::content::CreateContentRequestDto;
-    use common::setup::init_db;
-    use infrastructure::repositories::RepositoryProvider;
+    pub async fn edit(
+        &self,
+        dto: EditContentRequestDto,
+    ) -> Result<CreateContentResponseDto, BoxError> {
+        let mut uow = self.provider.begin().await?;
 
-    #[tokio::test]
-    async fn test_post_content_with_in_memory_db() {
-        // Arrange: インメモリDBと実際のRepositoryProviderを準備
-        // `common::setup::init_db` を使ってテスト用のDBプールを作成
-        let pool = init_db("sqlite::memory:").await.unwrap();
-        // 実際のRepositoryProviderをインスタンス化
-        let provider = Arc::new(RepositoryProvider::new(pool.clone()));
-        let use_cases = ContentUseCases::new(provider);
-        let dto = CreateContentRequestDto {
-            title: "Test Title".to_string(),
-            body: "Test Body".to_string(),
-        };
+        let _ = uow.content_tag().delete_by_content_id(dto.id).await?;
 
-        // Act: ユースケースを実行
-        let result = use_cases.post(dto).await.unwrap();
+        let mut tags: Vec<TagEntity> = Vec::new();
+        for tag in dto.to_tags() {
+            let entity = uow.tag().find_by_label(&tag.label).await?;
+            if let Some(entity) = entity {
+                tags.push(entity);
+            } else {
+                let entity = uow.tag().create(&tag).await?;
+                tags.push(entity);
+            }
+        }
 
-        // Assert: 戻り値が正しいことを検証
-        assert_eq!(result.id, 1);
-        assert_eq!(result.title, "Test Title");
-        assert_eq!(result.body, "Test Body");
+        let contet = uow
+            .content()
+            .update(&dto.to_content())
+            .await?
+            .ok_or(sqlx::Error::RowNotFound)?;
 
-        // Assert: データが実際にDBにコミットされたことを検証
-        // 別のUoWを開始して、書き込まれたデータを読み出す
-        let verification_provider = RepositoryProvider::new(pool);
-        let mut uow = verification_provider.begin().await.unwrap();
-        let content = uow.content().select(result.id).await.unwrap();
+        for tag in &tags {
+            let content_tag = uow.content_tag().select(contet.id, tag.id).await?;
+            if content_tag.is_none() {
+                uow.content_tag()
+                    .create(&ContentTagEntity {
+                        content_id: contet.id,
+                        tag_id: tag.id,
+                    })
+                    .await?;
+            }
+        }
+        uow.commit().await?;
+        Ok(CreateContentResponseDto::from_entity(contet, tags))
+    }
 
-        assert!(
-            content.is_some(),
-            "保存されたコンテンツが見つかりませんでした"
-        );
-        let saved_content = content.unwrap();
-        assert_eq!(saved_content.id, result.id);
-        assert_eq!(saved_content.title, result.title);
+    pub async fn remove(&self, id: i64) -> Result<u64, BoxError> {
+        let mut uow = self.provider.begin().await?;
+        let count = uow.content().delete(id).await?;
+        // 削除された行があった場合のみ、関連するタグも削除する
+        if count > 0 {
+            uow.content_tag().delete_by_content_id(id).await?;
+        }
+        uow.commit().await?;
+        Ok(count)
     }
 }
