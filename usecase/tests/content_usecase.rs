@@ -7,13 +7,17 @@ use usecase::{
     model::content::{CreateContentRequestDto, EditContentRequestDto},
 };
 
-#[tokio::test]
-async fn test_create_content_with_tags_in_memory_db() {
-    // Arrange: インメモリDBと実際のRepositoryProviderを準備
+// Helper function to set up the test environment
+async fn setup() -> (Arc<RepositoryProvider>, ContentUseCases) {
     let pool = init_db("sqlite::memory:").await.unwrap();
     let provider = Arc::new(RepositoryProvider::new(pool));
-    // providerのクローンを渡すことで、テストスコープでもproviderを使い続けられるようにする
     let use_cases = ContentUseCases::new(provider.clone());
+    (provider, use_cases)
+}
+
+#[tokio::test]
+async fn test_create_content_with_tags_in_memory_db() {
+    let (provider, use_cases) = setup().await;
 
     // `create`メソッドのロジックに合わせてlabelsフィールドを持つDTOを作成
     let dto = CreateContentRequestDto {
@@ -72,10 +76,7 @@ async fn test_create_content_with_tags_in_memory_db() {
 
 #[tokio::test]
 async fn test_edit_content_with_tags() {
-    // Arrange
-    let pool = init_db("sqlite::memory:").await.unwrap();
-    let provider = Arc::new(RepositoryProvider::new(pool));
-    let use_cases = ContentUseCases::new(provider.clone());
+    let (provider, use_cases) = setup().await;
 
     // 1. 最初にテスト用のコンテンツを作成
     let initial_dto = CreateContentRequestDto {
@@ -152,10 +153,7 @@ async fn test_edit_content_with_tags() {
 
 #[tokio::test]
 async fn test_remove_content_success() {
-    // Arrange
-    let pool = init_db("sqlite::memory:").await.unwrap();
-    let provider = Arc::new(RepositoryProvider::new(pool));
-    let use_cases = ContentUseCases::new(provider.clone());
+    let (provider, use_cases) = setup().await;
 
     let dto = CreateContentRequestDto {
         title: "To Be Deleted".to_string(),
@@ -176,10 +174,7 @@ async fn test_remove_content_success() {
 
 #[tokio::test]
 async fn test_remove_non_existent_content_returns_zero() {
-    // Arrange
-    let pool = init_db("sqlite::memory:").await.unwrap();
-    let provider = Arc::new(RepositoryProvider::new(pool));
-    let use_cases = ContentUseCases::new(provider.clone());
+    let (_, use_cases) = setup().await;
 
     // Act: 存在しないコンテンツを削除しようとする
     let result = use_cases.remove(999).await.unwrap();

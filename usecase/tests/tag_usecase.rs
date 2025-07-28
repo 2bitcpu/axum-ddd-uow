@@ -8,11 +8,7 @@ use usecase::{
 };
 
 // Helper function to set up the test environment
-async fn setup() -> (
-    Arc<RepositoryProvider>,
-    ContentUseCases<RepositoryProvider>,
-    TagUseCases<RepositoryProvider>,
-) {
+async fn setup() -> (Arc<RepositoryProvider>, ContentUseCases, TagUseCases) {
     let pool = init_db("sqlite::memory:").await.unwrap();
     let provider = Arc::new(RepositoryProvider::new(pool));
     let content_use_cases = ContentUseCases::new(provider.clone());

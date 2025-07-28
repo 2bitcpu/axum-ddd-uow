@@ -1,14 +1,17 @@
 use common::types::BoxError;
-use derive_new::new;
 use domain::repository_provider::RepositoryProviderInterface;
 use std::sync::Arc;
 
-#[derive(new, Clone)]
-pub struct TagUseCases<R: RepositoryProviderInterface> {
-    provider: Arc<R>,
+#[derive(Clone)]
+pub struct TagUseCases {
+    provider: Arc<dyn RepositoryProviderInterface + Send + Sync>,
 }
 
-impl<R: RepositoryProviderInterface> TagUseCases<R> {
+impl TagUseCases {
+    pub fn new(provider: Arc<dyn RepositoryProviderInterface + Send + Sync>) -> Self {
+        Self { provider }
+    }
+
     pub async fn remove(&self, id: i64) -> Result<u64, BoxError> {
         let mut uow = self.provider.begin().await?;
         let count = uow.tag().delete(id).await?;

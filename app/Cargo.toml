@@ -1,0 +1,20 @@
+[package]
+name = "web-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+axum = { version = "0.8.4", features = ["macros"] } # "macros" feature is essential
+tokio.workspace = true
+serde_json.workspace = true
+
+
+# Workspace dependencies
+common.workspace = true
+domain.workspace = true
+infrastructure.workspace = true
+usecase.workspace = true
+libsqlite3-sys = { version = "^0.30.1", default-features = false, optional = true }
+
+[features]
+libsqlite3-sys = ["dep:libsqlite3-sys"]

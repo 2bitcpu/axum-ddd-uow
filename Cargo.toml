@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["common", "domain", "infrastructure", "usecase"]
+members = [ "app", "common", "domain", "infrastructure", "usecase"]
 
 [workspace.package]
 version = "0.1.0"
@@ -19,3 +19,4 @@ common = { path = "common" }
 domain = { path = "domain" }
 infrastructure = { path = "infrastructure" }
 usecase = { path = "usecase" }
+app = { path = "app" }
